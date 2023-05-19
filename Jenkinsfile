@@ -74,7 +74,7 @@ pipeline {
     stage("BUILD APP IMAGE") {
       steps {
         script {
-          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+          dockerImage = docker.build registry + ":$BUILD_TIMESTAMP"
         }
       }
     }
@@ -83,7 +83,7 @@ pipeline {
       steps {
         script {
           docker.withRegistry("", registryCredential) {
-            dockerImage.push("$BUILD_NUMBER")
+            dockerImage.push("$BUILD_TIMESTAMP")
             dockerImage.push("latest")
           }
         }
@@ -92,14 +92,14 @@ pipeline {
 
     stage("REMOVE DOCKER IMAGE") {
       steps {
-        sh "docker rmi $registry:$BUILD_NUMBER"
+        sh "docker rmi $registry:$BUILD_TIMESTAMP"
       }
     }
 
     stage("KUBERNETES DEPLOY") {
       agent {label "KOPS"}
       steps {
-        sh "helm upgrade --install --force vprofile-stack helm/vprofilecharts --set appimage=${registry}:${$BUILD_NUMBER} --namespace prod"
+        sh "helm upgrade --install --force vprofile-stack helm/vprofilecharts --set appimage=${registry}:${$BUILD_TIMESTAMP} --namespace prod"
       }
     }
   }
